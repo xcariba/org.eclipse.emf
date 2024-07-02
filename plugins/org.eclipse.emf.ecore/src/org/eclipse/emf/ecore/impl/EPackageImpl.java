@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.eclipse.emf.common.CommonPlugin;
 import org.eclipse.emf.common.notify.Notification;
@@ -1995,5 +1996,32 @@ public class EPackageImpl extends ENamedElementImpl implements EPackage, BasicEx
   protected static interface EBasicWhiteList
   {
     // This is a dummy placeholder class.
+  }
+
+  @Override
+  public int hashCode()
+  {
+      return Objects.hash(nsURI, nsPrefix);
+  }
+
+  @Override
+  public boolean equals(Object other)
+  {
+      if (other == this)
+      {
+          return true;
+      }
+      if (other == null)
+      {
+          return false;
+      }
+      if (other.getClass() != getClass())
+      {
+          return false;
+      }
+
+      EPackageImpl otherPackage = (EPackageImpl)other;
+
+      return Objects.equals(nsURI, otherPackage.nsURI) && Objects.equals(nsPrefix, otherPackage.nsPrefix);
   }
 }

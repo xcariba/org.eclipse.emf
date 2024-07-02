@@ -12,7 +12,9 @@ package org.eclipse.emf.ecore.impl;
 
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 import org.eclipse.emf.common.notify.NotificationChain;
 import org.eclipse.emf.common.util.EList;
@@ -424,4 +426,55 @@ public class EEnumImpl extends EDataTypeImpl implements EEnum
     return eDynamicInverseRemove(otherEnd, featureID, msgs);
   }
 
+  @Override
+  public int hashCode()
+  {
+      return Objects.hash(name, getEPackage(),
+          (eLiterals != null && !eLiterals.isEmpty()) ? eLiterals.size() : null);
+  }
+
+  @Override
+  public boolean equals(Object other)
+  {
+      if (other == this)
+      {
+          return true;
+      }
+      if (other == null)
+      {
+          return false;
+      }
+      if (!(other instanceof EEnumImpl))
+      {
+          return false;
+      }
+
+      EEnumImpl otherEnum = (EEnumImpl)other;
+      if (!Objects.equals(name, otherEnum.name))
+      {
+          return false;
+      }
+      if (!Objects.equals(getEPackage(), otherEnum.getEPackage()))
+      {
+          return false;
+      }
+
+      if (eLiterals != null && !eLiterals.isEmpty())
+      {
+          if (otherEnum.eLiterals == null || otherEnum.eLiterals.isEmpty())
+          {
+              return false;
+          }
+          if (!Arrays.equals(eLiterals.toArray(), otherEnum.eLiterals.toArray()))
+          {
+              return false;
+          }
+      }
+      else if (otherEnum.eLiterals != null && !otherEnum.eLiterals.isEmpty())
+      {
+          return false;
+      }
+
+      return true;
+  }
 }

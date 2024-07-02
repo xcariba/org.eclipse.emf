@@ -15,6 +15,7 @@ package org.eclipse.emf.ecore.impl;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Array;
 import java.util.AbstractSequentialList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
@@ -96,8 +99,8 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
   protected EAttribute eIDAttribute;
   protected BasicEList<EAttribute> eAllAttributes;
   protected BasicEList<EReference> eAllReferences;
-  protected BasicEList<EStructuralFeature> eAllStructuralFeatures;
-  protected EStructuralFeature[] eAllStructuralFeaturesData;
+  protected volatile BasicEList<EStructuralFeature> eAllStructuralFeatures;
+  protected volatile EStructuralFeature[] eAllStructuralFeaturesData;
   protected BasicEList<EReference> eAllContainments;  
   protected BasicEList<EOperation> eAllOperations;
   protected EOperation[] eAllOperationsData;
@@ -764,166 +767,177 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
     //
     if (eAllStructuralFeatures == null)
     {
-      class EStructuralFeatureUniqueEList extends UniqueEList<EStructuralFeature>
+      synchronized (this)
       {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        protected Object [] newData(int capacity)
+        if (eAllStructuralFeatures == null)
         {
-          return new EStructuralFeature [capacity];
-        }
-
-        @Override
-        protected boolean useEquals()
-        {
-          return false;
-        }
-      }
-
-      BasicEList<EStructuralFeature> result = new EStructuralFeatureUniqueEList();
-
-      Set<EClass> computationInProgress = COMPUTATION_IN_PROGRESS.get();
-      if (computationInProgress.add(this))
-      {
-        for (EClass eSuperType : getESuperTypes())
-        {
-          result.addAll(eSuperType.getEAllStructuralFeatures());
-        }
-        computationInProgress.remove(this);
-        if (computationInProgress.isEmpty())
-        {
-          COMPUTATION_IN_PROGRESS.remove();
-        }
-      }
-      int featureID = result.size();
-      for (Iterator<EStructuralFeature> i = getEStructuralFeatures().iterator(); i.hasNext(); ++featureID)
-      {
-        ((EStructuralFeatureImpl)i.next()).setFeatureID(featureID);
-      }
-      result.addAll(getEStructuralFeatures());
-
-      class EAllStructuralFeaturesList extends EcoreEList.UnmodifiableEList.FastCompare<EStructuralFeature> implements FeatureSubsetSupplier
-      {
-        private static final long serialVersionUID = 1L;
-
-        protected EStructuralFeature [] containments = NO_EALL_STRUCTURE_FEATURES_DATA;
-        protected EStructuralFeature [] crossReferences = NO_EALL_STRUCTURE_FEATURES_DATA;
-
-        public EAllStructuralFeaturesList(BasicEList<EStructuralFeature> eAllStructuralFeatures)
-        {
-          super
-            (EClassImpl.this, 
-             EcorePackage.eINSTANCE.getEClass_EAllStructuralFeatures(), 
-             eAllStructuralFeatures.size(), 
-             eAllStructuralFeatures.data());
-        }
-
-        private void init()
-        {
-          BasicEList<EStructuralFeature> containmentsList = new EStructuralFeatureUniqueEList();
-          BasicEList<EStructuralFeature> crossReferencesList = new EStructuralFeatureUniqueEList();
-          boolean isMixed = "mixed".equals(EcoreUtil.getAnnotation(EClassImpl.this, ExtendedMetaData.ANNOTATION_URI, "kind"));
-          for (int i = 0;  i < size; ++i)
+          class EStructuralFeatureUniqueEList extends UniqueEList<EStructuralFeature>
           {
-            // Skip derived features.
-            //
-            EStructuralFeature eStructuralFeature = (EStructuralFeature)data[i];
-            if (eStructuralFeature instanceof EReference)
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Object[] newData(int capacity)
             {
-              EReference eReference = (EReference)eStructuralFeature;
-              if (eReference.isContainment())
+              return new EStructuralFeature[capacity];
+            }
+
+            @Override
+            protected boolean useEquals()
+            {
+              return false;
+            }
+          }
+
+          BasicEList<EStructuralFeature> result = new EStructuralFeatureUniqueEList();
+
+          Set<EClass> computationInProgress = COMPUTATION_IN_PROGRESS.get();
+          if (computationInProgress.add(this))
+          {
+            for (EClass eSuperType : getESuperTypes())
+            {
+              result.addAll(eSuperType.getEAllStructuralFeatures());
+            }
+            computationInProgress.remove(this);
+            if (computationInProgress.isEmpty())
+            {
+              COMPUTATION_IN_PROGRESS.remove();
+            }
+          }
+          int featureID = result.size();
+          for (Iterator<EStructuralFeature> i = getEStructuralFeatures().iterator(); i.hasNext(); ++featureID)
+          {
+            ((EStructuralFeatureImpl)i.next()).setFeatureID(featureID);
+          }
+          result.addAll(getEStructuralFeatures());
+
+          class EAllStructuralFeaturesList extends EcoreEList.UnmodifiableEList.FastCompare<EStructuralFeature>
+                  implements FeatureSubsetSupplier
+          {
+            private static final long serialVersionUID = 1L;
+
+            protected EStructuralFeature[] containments = NO_EALL_STRUCTURE_FEATURES_DATA;
+            protected EStructuralFeature[] crossReferences = NO_EALL_STRUCTURE_FEATURES_DATA;
+
+            public EAllStructuralFeaturesList(BasicEList<EStructuralFeature> eAllStructuralFeatures)
+            {
+              super(EClassImpl.this, EcorePackage.eINSTANCE.getEClass_EAllStructuralFeatures(),
+                      eAllStructuralFeatures.size(), eAllStructuralFeatures.data());
+            }
+
+            private void init()
+            {
+              BasicEList<EStructuralFeature> containmentsList = new EStructuralFeatureUniqueEList();
+              BasicEList<EStructuralFeature> crossReferencesList = new EStructuralFeatureUniqueEList();
+              boolean isMixed = "mixed".equals(
+                      EcoreUtil.getAnnotation(EClassImpl.this, ExtendedMetaData.ANNOTATION_URI, "kind"));
+              for (int i = 0; i < size; ++i)
               {
-                // Include derived relations only if they won't also come from mixed or a group.
+                // Skip derived features.
                 //
-                if (!eReference.isDerived() || 
-                      !isMixed && EcoreUtil.getAnnotation(eReference, ExtendedMetaData.ANNOTATION_URI, "group") == null)
+                EStructuralFeature eStructuralFeature = (EStructuralFeature)data[i];
+                if (eStructuralFeature instanceof EReference)
                 {
-                  containmentsList.add(eReference);
+                  EReference eReference = (EReference)eStructuralFeature;
+                  if (eReference.isContainment())
+                  {
+                    // Include derived relations only if they won't also come from mixed or a group.
+                    //
+                    if (!eReference.isDerived() || !isMixed && EcoreUtil.getAnnotation(eReference,
+                            ExtendedMetaData.ANNOTATION_URI, "group") == null)
+                    {
+                      containmentsList.add(eReference);
+                    }
+                  }
+                  else if (!eReference.isContainer())
+                  {
+                    // Include derived relations only if they won't also come from mixed or a group.
+                    //
+                    if (!eReference.isDerived() || !isMixed && EcoreUtil.getAnnotation(eReference,
+                            ExtendedMetaData.ANNOTATION_URI, "group") == null)
+                    {
+                      crossReferencesList.add(eReference);
+                    }
+                  }
+                }
+                else if (FeatureMapUtil.isFeatureMap(eStructuralFeature))
+                {
+                  if (!eStructuralFeature.isDerived())
+                  {
+                    containmentsList.add(eStructuralFeature);
+                    crossReferencesList.add(eStructuralFeature);
+                  }
                 }
               }
-              else if (!eReference.isContainer())
-              {
-                // Include derived relations only if they won't also come from mixed or a group.
-                //
-                if (!eReference.isDerived() || 
-                      !isMixed && EcoreUtil.getAnnotation(eReference, ExtendedMetaData.ANNOTATION_URI, "group") == null)
-                {
-                  crossReferencesList.add(eReference);
-                }
-              }
+              containmentsList.shrink();
+              crossReferencesList.shrink();
+              containments = (EStructuralFeature[])containmentsList.data();
+              crossReferences = (EStructuralFeature[])crossReferencesList.data();
             }
-            else if (FeatureMapUtil.isFeatureMap(eStructuralFeature))
+
+            public EStructuralFeature[] containments()
             {
-              if (!eStructuralFeature.isDerived())
+              if (containments == NO_EALL_STRUCTURE_FEATURES_DATA)
               {
-                containmentsList.add(eStructuralFeature);
-                crossReferencesList.add(eStructuralFeature);
+                init();
               }
+              return containments;
             }
-          }
-          containmentsList.shrink();
-          crossReferencesList.shrink();
-          containments = (EStructuralFeature [])containmentsList.data();
-          crossReferences = (EStructuralFeature [])crossReferencesList.data();
-        }
 
-        public EStructuralFeature [] containments()
-        {
-          if (containments == NO_EALL_STRUCTURE_FEATURES_DATA)
-          {
-            init();
-          }
-          return containments;
-        }
-
-        public EStructuralFeature [] crossReferences()
-        {
-          if (crossReferences == NO_EALL_STRUCTURE_FEATURES_DATA)
-          {
-            init();
-          }
-          return crossReferences;
-        }
-
-        public EStructuralFeature [] features()
-        {
-          return (EStructuralFeature [])data;
-        }
-
-        @Override
-        public int indexOf(Object object)
-        {
-          if (object instanceof EStructuralFeature)
-          {
-            EStructuralFeature eStructuralFeature = (EStructuralFeature)object;
-            int index = eStructuralFeature.getFeatureID();
-            if (index != -1)
+            public EStructuralFeature[] crossReferences()
             {
-              for (int last = this.size; index < last; ++index)
+              if (crossReferences == NO_EALL_STRUCTURE_FEATURES_DATA)
               {
-                if (data[index] == object)
+                init();
+              }
+              return crossReferences;
+            }
+
+            public EStructuralFeature[] features()
+            {
+              return (EStructuralFeature[])data;
+            }
+
+            @Override
+            public int indexOf(Object object)
+            {
+              if (object instanceof EStructuralFeature)
+              {
+                EStructuralFeature eStructuralFeature = (EStructuralFeature)object;
+                int index = eStructuralFeature.getFeatureID();
+                if (index != -1)
                 {
-                  return index;
+                  for (int last = this.size; index < last; ++index)
+                  {
+                    if (data[index] == object)
+                    {
+                      return index;
+                    }
+                  }
                 }
               }
+              return -1;
+            }
+
+            @Override
+            protected boolean useEquals()
+            {
+              return true;
             }
           }
-          return -1;
+
+          result.shrink();
+          eAllStructuralFeatures = new EAllStructuralFeaturesList(result);
+          eAllStructuralFeaturesData = (EStructuralFeature[])result.data();
+          if (eAllStructuralFeaturesData == null)
+          {
+            eAllStructuralFeaturesData = NO_EALL_STRUCTURE_FEATURES_DATA;
+          }
+
+          eNameToFeatureMap = null;
+
+          getESuperAdapter().setAllStructuralFeaturesCollectionModified(false);
         }
       }
-
-      result.shrink();
-      eAllStructuralFeatures = new EAllStructuralFeaturesList(result);
-      eAllStructuralFeaturesData = (EStructuralFeature[])result.data();
-      if (eAllStructuralFeaturesData == null)
-      {
-        eAllStructuralFeaturesData = NO_EALL_STRUCTURE_FEATURES_DATA;
-      }
-
-      eNameToFeatureMap = null; 
-      
-      getESuperAdapter().setAllStructuralFeaturesCollectionModified(false);
     }
 
     return eAllStructuralFeatures;
@@ -1459,11 +1473,19 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
 
   protected EStructuralFeature[] getEAllStructuralFeaturesData()
   {
-    if (eAllStructuralFeaturesData == null)
+    // for multithreading
+    EStructuralFeature[] threadLocalEAllStructuralFeaturesData = eAllStructuralFeaturesData;
+    if (threadLocalEAllStructuralFeaturesData == null)
     {
-      getEAllStructuralFeatures();
+      synchronized (this)
+      {
+        getEAllStructuralFeatures();
+
+        threadLocalEAllStructuralFeaturesData = eAllStructuralFeaturesData;
+      }
     }
-    return eAllStructuralFeaturesData;
+
+    return threadLocalEAllStructuralFeaturesData;
   }
   
   /**
@@ -1490,6 +1512,27 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
         null;
   }
 
+  // ================================
+  // TODO : DELETE AFTER GETTING LOGS
+  public EStructuralFeature getEStructuralFeatureWithLogs(int featureID)
+  {
+    EStructuralFeature [] eAllStructuralFeaturesData  = getEAllStructuralFeaturesData();
+    EStructuralFeature feature = featureID >= 0 && featureID < eAllStructuralFeaturesData.length
+            ? eAllStructuralFeaturesData[featureID]
+            : null;
+
+    if (feature == null)
+    {
+      throw new IllegalStateException("Expected non null feature but got null. Context: featureID: " + featureID +
+              ", eAllStructuralFeaturesData: " + (eAllStructuralFeaturesData != null ? Arrays.stream(
+                      eAllStructuralFeaturesData).map(featureData -> featureData != null ? featureData.toString() : null)
+              .collect(Collectors.joining(", ")) : null));
+    }
+
+    return feature;
+  }
+  // ================================
+
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -1503,7 +1546,7 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
     {
       for (int last = eAllStructuralFeaturesData.length; index < last; ++index)
       {
-        if (eAllStructuralFeaturesData[index] == feature)
+        if (eAllStructuralFeaturesData[index].equals(feature))
         {
           return index;
         }
@@ -2210,9 +2253,12 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
             }
             if (isAllStructuralFeaturesCollectionModified())
             {
-              eAllStructuralFeatures = null;
-              eAllStructuralFeaturesData = null;
-              eAllStructuralFeatureTypes = null;
+              synchronized (this)
+              {
+                eAllStructuralFeatures = null;
+                eAllStructuralFeaturesData = null;
+                eAllStructuralFeatureTypes = null;
+              }
             }
             if (isAllOperationsCollectionModified())
             {
@@ -2257,4 +2303,92 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
     return result != null ? result : super.eObjectForURIFragmentSegment(uriFragmentSegment);
   }
 
+  @Override
+  public int hashCode()
+  {
+      return Objects.hash(name, getEPackage(),
+          (eSuperTypes != null && !eSuperTypes.isEmpty())
+              ? eSuperTypes.size() : null,
+          (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
+              ? eStructuralFeatures.size() : null,
+          (eAnnotations != null && !eAnnotations.isEmpty())
+              ? eAnnotations.size() : null);
+  }
+
+  @Override
+  public boolean equals(Object other)
+  {
+      if (other == this)
+      {
+          return true;
+      }
+      if (other == null)
+      {
+          return false;
+      }
+      if (!(other instanceof EClassImpl))
+      {
+          return false;
+      }
+
+      EClassImpl otherClass = (EClassImpl)other;
+      if (!Objects.equals(name, otherClass.name))
+      {
+          return false;
+      }
+      if (!Objects.equals(getEPackage(), otherClass.getEPackage()))
+      {
+          return false;
+      }
+
+    if (eSuperTypes != null && !eSuperTypes.isEmpty())
+    {
+      if (otherClass.eSuperTypes == null || otherClass.eSuperTypes.isEmpty())
+      {
+        return false;
+      }
+      if (!Arrays.equals(eSuperTypes.toArray(), otherClass.eSuperTypes.toArray()))
+      {
+        return false;
+      }
+    }
+    else if (otherClass.eSuperTypes != null && !otherClass.eSuperTypes.isEmpty())
+    {
+      return false;
+    }
+
+    if (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
+    {
+        if (otherClass.eStructuralFeatures == null || otherClass.eStructuralFeatures.isEmpty())
+        {
+            return false;
+        }
+        if (!Arrays.equals(eStructuralFeatures.toArray(), otherClass.eStructuralFeatures.toArray()))
+        {
+            return false;
+        }
+    }
+    else if (otherClass.eStructuralFeatures != null && !otherClass.eStructuralFeatures.isEmpty())
+    {
+        return false;
+    }
+
+    if (eAnnotations != null && !eAnnotations.isEmpty())
+    {
+      if (otherClass.eAnnotations == null || otherClass.eAnnotations.isEmpty())
+      {
+        return false;
+      }
+      if (!Arrays.equals(eAnnotations.toArray(), otherClass.eAnnotations.toArray()))
+      {
+        return false;
+      }
+    }
+    else if (otherClass.eAnnotations != null && !otherClass.eAnnotations.isEmpty())
+    {
+      return false;
+    }
+
+    return true;
+  }
 }

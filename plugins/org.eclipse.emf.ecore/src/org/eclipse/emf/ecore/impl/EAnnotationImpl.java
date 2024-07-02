@@ -10,7 +10,11 @@
  */
 package org.eclipse.emf.ecore.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
@@ -20,7 +24,9 @@ import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EModelElement;
+import org.eclipse.emf.ecore.ENamedElement;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.InternalEObject;
@@ -464,5 +470,83 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
     return result.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+    return Objects.hash(source, Arrays.hashCode(getHierarchy().toArray()));
+  }
+
+  @Override
+  public boolean equals(Object other)
+  {
+    if (other == this)
+    {
+      return true;
+    }
+    if (other == null)
+    {
+      return false;
+    }
+    if (!(other instanceof EAnnotationImpl))
+    {
+      return false;
+    }
+
+    EAnnotationImpl otherAnnotation = (EAnnotationImpl)other;
+    return Objects.equals(source, otherAnnotation.source) && equalDetails(details, otherAnnotation.details) &&
+            getHierarchy().equals(otherAnnotation.getHierarchy());
+  }
+
+  private List<String> getHierarchy()
+  {
+    List<String> hierarchy = new ArrayList<>();
+
+    EObject currentObject = eInternalContainer();
+    if (currentObject instanceof ENamedElement)
+    {
+      hierarchy.add(((ENamedElement)currentObject).getName());
+    }
+    while (currentObject != null && !(currentObject instanceof EPackage))
+    {
+      currentObject = currentObject.eContainer();
+      if (currentObject instanceof ENamedElement)
+      {
+        hierarchy.add(((ENamedElement)currentObject).getName());
+      }
+    }
+
+    return hierarchy;
+  }
+
+  private boolean equalDetails(EMap<String,String> details, EMap<String,String> otherDetails)
+  {
+    if (details == null)
+    {
+      return otherDetails == null;
+    }
+    else if (otherDetails == null)
+    {
+      return false;
+    }
+
+    if (details.isEmpty() && otherDetails.isEmpty())
+    {
+      return true;
+    }
+    if (details.size() != otherDetails.size())
+    {
+      return false;
+    }
+
+    for (String key: details.keySet())
+    {
+      if (!Objects.equals(details.get(key), otherDetails.get(key)))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
 } //EAnnotationImpl
 
