@@ -12,6 +12,7 @@ package org.eclipse.emf.ecore.impl;
 
 
 import java.util.Collection;
+import java.util.Objects;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
@@ -442,4 +443,75 @@ public class EEnumLiteralImpl extends ENamedElementImpl implements EEnumLiteral
     return result.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+      return Objects.hash(literal, value, eContainer instanceof EEnumImpl ? ((EEnumImpl)eContainer).getName() : null,
+          (eContainer instanceof EEnumImpl && ((EEnumImpl)eContainer).ePackage != null)
+              ? ((EEnumImpl)eContainer).ePackage.getName() : null);
+  }
+
+  @Override
+  public boolean equals(Object other)
+  {
+      if (other == this)
+      {
+          return true;
+      }
+      if (other == null)
+      {
+          return false;
+      }
+      if (!(other instanceof EClassifierImpl))
+      {
+          return false;
+      }
+
+      EEnumLiteralImpl otherLiteral = (EEnumLiteralImpl)other;
+      if (!Objects.equals(literal, otherLiteral.literal))
+      {
+          return false;
+      }
+      if (!Objects.equals(value, otherLiteral.value))
+      {
+          return false;
+      }
+
+      if (eContainer instanceof EEnumImpl)
+      {
+          if (!(otherLiteral.eContainer instanceof EEnumImpl))
+          {
+              return false;
+          }
+          EEnumImpl eEnum = (EEnumImpl)eContainer;
+          EEnumImpl otherLiteralEEnum = (EEnumImpl)otherLiteral.eContainer;
+
+          if (!Objects.equals(eEnum.getName(), otherLiteralEEnum.getName()))
+          {
+              return false;
+          }
+
+          if (eEnum.ePackage != null)
+          {
+              if (otherLiteralEEnum.ePackage == null)
+              {
+                  return false;
+              }
+              if (!Objects.equals(eEnum.ePackage.getName(), otherLiteralEEnum.ePackage.getName()))
+              {
+                  return false;
+              }
+          }
+          else if (otherLiteralEEnum.ePackage != null)
+          {
+              return false;
+          }
+      }
+      else if (otherLiteral.eContainer instanceof EEnumImpl)
+      {
+          return false;
+      }
+
+      return true;
+  }
 }

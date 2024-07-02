@@ -15,6 +15,7 @@ package org.eclipse.emf.ecore.impl;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Array;
 import java.util.AbstractSequentialList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.emf.common.notify.Notification;
@@ -1502,7 +1504,7 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
     {
       for (int last = eAllStructuralFeaturesData.length; index < last; ++index)
       {
-        if (eAllStructuralFeaturesData[index] == feature)
+        if (eAllStructuralFeaturesData[index].equals(feature))
         {
           return index;
         }
@@ -2250,4 +2252,56 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
     return result != null ? result : super.eObjectForURIFragmentSegment(uriFragmentSegment);
   }
 
+  @Override
+  public int hashCode()
+  {
+      return Objects.hash(name, getEPackage(),
+          (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
+              ? Arrays.hashCode(eStructuralFeatures.toArray()) : null);
+  }
+
+  @Override
+  public boolean equals(Object other)
+  {
+      if (other == this)
+      {
+          return true;
+      }
+      if (other == null)
+      {
+          return false;
+      }
+      if (!(other instanceof EClassImpl))
+      {
+          return false;
+      }
+
+      EClassImpl otherClass = (EClassImpl)other;
+      if (!Objects.equals(name, otherClass.name))
+      {
+          return false;
+      }
+      if (!Objects.equals(getEPackage(), otherClass.getEPackage()))
+      {
+          return false;
+      }
+
+      if (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
+      {
+          if (otherClass.eStructuralFeatures == null || otherClass.eStructuralFeatures.isEmpty())
+          {
+              return false;
+          }
+          if (!Arrays.equals(eStructuralFeatures.toArray(), otherClass.eStructuralFeatures.toArray()))
+          {
+              return false;
+          }
+      }
+      else if (otherClass.eStructuralFeatures != null && !otherClass.eStructuralFeatures.isEmpty())
+      {
+          return false;
+      }
+
+      return true;
+  }
 }
