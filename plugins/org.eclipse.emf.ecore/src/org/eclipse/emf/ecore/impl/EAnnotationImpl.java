@@ -10,7 +10,10 @@
  */
 package org.eclipse.emf.ecore.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.emf.common.notify.Notification;
@@ -24,6 +27,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EModelElement;
 import org.eclipse.emf.ecore.ENamedElement;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.InternalEObject;
@@ -465,12 +469,7 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
   @Override
   public int hashCode()
   {
-    EObject eContainer = eInternalContainer();
-
-    return Objects.hash(source, details, eContainer instanceof ENamedElement ? ((ENamedElement)eContainer).getName() : null,
-            (eContainer instanceof EClassifier && ((EClassifier)eContainer).getEPackage() != null)
-                    ? ((EClassifier)eContainer).getEPackage().getName()
-                    : null);
+    return Objects.hash(source, details, Arrays.hashCode(getHierarchy().toArray()));
   }
 
   @Override
@@ -490,58 +489,29 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
     }
 
     EAnnotationImpl otherAnnotation = (EAnnotationImpl)other;
+    return Objects.equals(source, otherAnnotation.source) && Objects.equals(details, otherAnnotation.details) &&
+            getHierarchy().equals(otherAnnotation.getHierarchy());
+  }
 
-    if (eInternalContainer() instanceof ENamedElementImpl)
+  private List<String> getHierarchy()
+  {
+    List<String> hierarchy = new ArrayList<>();
+
+    EObject currentObject = eInternalContainer();
+    if (currentObject instanceof ENamedElement)
     {
-      if (!(otherAnnotation.eInternalContainer() instanceof ENamedElementImpl))
+      hierarchy.add(((ENamedElement)currentObject).getName());
+    }
+    while (currentObject != null && !(currentObject instanceof EPackage))
+    {
+      currentObject = currentObject.eContainer();
+      if (currentObject instanceof ENamedElement)
       {
-        return false;
-      }
-      ENamedElementImpl eContainer = (ENamedElementImpl)eInternalContainer();
-      ENamedElementImpl otherEContainer = (ENamedElementImpl)otherAnnotation.eInternalContainer();
-
-      if (!Objects.equals(eContainer.getName(), otherEContainer.getName()))
-      {
-        return false;
+        hierarchy.add(((ENamedElement)currentObject).getName());
       }
     }
-    else if (otherAnnotation.eInternalContainer() instanceof ENamedElementImpl)
-    {
-      return false;
-    }
 
-    if (eInternalContainer() instanceof EClassifierImpl)
-    {
-      if (!(otherAnnotation.eInternalContainer() instanceof EClassifierImpl))
-      {
-        return false;
-      }
-      EClassifierImpl eContainer = (EClassifierImpl)eInternalContainer();
-      EClassifierImpl otherEContainer = (EClassifierImpl)otherAnnotation.eInternalContainer();
-
-      if (eContainer.getEPackage() != null)
-      {
-        if (otherEContainer.getEPackage() == null)
-        {
-          return false;
-        }
-        if (!Objects.equals(eContainer.getEPackage().getName(),
-                otherEContainer.getEPackage().getName()))
-        {
-          return false;
-        }
-      }
-      else if (otherEContainer.getEPackage() != null)
-      {
-        return false;
-      }
-    }
-    else if (otherAnnotation.eInternalContainer() instanceof EClassifierImpl)
-    {
-      return false;
-    }
-
-    return Objects.equals(source, otherAnnotation.source) && Objects.equals(details, otherAnnotation.details);
+    return hierarchy;
   }
 } //EAnnotationImpl
 
