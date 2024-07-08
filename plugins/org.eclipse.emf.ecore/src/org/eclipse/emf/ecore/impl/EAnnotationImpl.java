@@ -11,6 +11,7 @@
 package org.eclipse.emf.ecore.impl;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
@@ -459,5 +460,30 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
     return result.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+    return Objects.hash(source, details);
+  }
+
+  @Override
+  public boolean equals(Object other)
+  {
+    if (other == this)
+    {
+      return true;
+    }
+    if (other == null)
+    {
+      return false;
+    }
+    if (!(other instanceof EAnnotationImpl))
+    {
+      return false;
+    }
+
+    EAnnotationImpl otherAnnotation = (EAnnotationImpl)other;
+    return Objects.equals(source, otherAnnotation.source) && Objects.equals(details, otherAnnotation.details);
+  }
 } //EAnnotationImpl
 

@@ -2256,6 +2256,8 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
   public int hashCode()
   {
       return Objects.hash(name, getEPackage(),
+          (eSuperTypes != null && !eSuperTypes.isEmpty())
+                  ? Arrays.hashCode(eSuperTypes.toArray()) : null,
           (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
               ? Arrays.hashCode(eStructuralFeatures.toArray()) : null);
   }
@@ -2285,6 +2287,22 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
       {
           return false;
       }
+
+    if (eSuperTypes != null && !eSuperTypes.isEmpty())
+    {
+      if (otherClass.eSuperTypes == null || otherClass.eSuperTypes.isEmpty())
+      {
+        return false;
+      }
+      if (!Arrays.equals(eSuperTypes.toArray(), otherClass.eSuperTypes.toArray()))
+      {
+        return false;
+      }
+    }
+    else if (otherClass.eSuperTypes != null && !otherClass.eSuperTypes.isEmpty())
+    {
+      return false;
+    }
 
       if (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
       {

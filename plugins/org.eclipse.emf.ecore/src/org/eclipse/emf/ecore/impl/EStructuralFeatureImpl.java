@@ -13,6 +13,7 @@ package org.eclipse.emf.ecore.impl;
 
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -3571,84 +3572,102 @@ public abstract class EStructuralFeatureImpl extends ETypedElementImpl implement
       EClass eContainingClass = getEContainingClass();
 
       return Objects.hash(name, eType != null ? eType.getName() : null,
-          eContainingClass instanceof EClassImpl ? ((EClassImpl)eContainingClass).getName() : null,
-          (eContainingClass instanceof EClassImpl && ((EClassImpl)eContainingClass).getEPackage() != null)
-              ? ((EClassImpl)eContainingClass).getEPackage().getName() : null);
+              eContainingClass instanceof EClassImpl ? ((EClassImpl)eContainingClass).getName() : null,
+              (eContainingClass instanceof EClassImpl && ((EClassImpl)eContainingClass).getEPackage() != null)
+                      ? ((EClassImpl)eContainingClass).getEPackage().getName()
+                      : null,
+              (eAnnotations != null && !eAnnotations.isEmpty()) ? Arrays.hashCode(eAnnotations.toArray()) : null);
   }
 
-  @Override
-  public boolean equals(Object other)
-  {
-      if (other == this)
-      {
-          return true;
-      }
-      if (other == null)
-      {
-          return false;
-      }
-      if (!(other instanceof EStructuralFeatureImpl))
-      {
-          return false;
-      }
+    @Override
+    public boolean equals(Object other)
+    {
+        if (other == this)
+        {
+            return true;
+        }
+        if (other == null)
+        {
+            return false;
+        }
+        if (!(other instanceof EStructuralFeatureImpl))
+        {
+            return false;
+        }
 
-      EStructuralFeatureImpl otherFeature = (EStructuralFeatureImpl)other;
-      if (!Objects.equals(getName(), otherFeature.getName()))
-      {
-          return false;
-      }
-      if (getEType() != null)
-      {
-          if (otherFeature.getEType() == null)
-          {
-              return false;
-          }
-          if (!Objects.equals(getEType().getName(), otherFeature.getEType().getName()))
-          {
-              return false;
-          }
-      }
-      else if (otherFeature.getEType() != null)
-      {
-          return false;
-      }
+        EStructuralFeatureImpl otherFeature = (EStructuralFeatureImpl)other;
+        if (!Objects.equals(getName(), otherFeature.getName()))
+        {
+            return false;
+        }
+        if (getEType() != null)
+        {
+            if (otherFeature.getEType() == null)
+            {
+                return false;
+            }
+            if (!Objects.equals(getEType().getName(), otherFeature.getEType().getName()))
+            {
+                return false;
+            }
+        }
+        else if (otherFeature.getEType() != null)
+        {
+            return false;
+        }
 
-      if (getEContainingClass() instanceof EClassImpl)
-      {
-          if (!(otherFeature.getEContainingClass() instanceof EClassImpl))
-          {
-              return false;
-          }
-          EClassImpl eContainingClass = (EClassImpl)getEContainingClass();
-          EClassImpl otherFeatureEContainingClass = (EClassImpl)otherFeature.getEContainingClass();
+        if (getEContainingClass() instanceof EClassImpl)
+        {
+            if (!(otherFeature.getEContainingClass() instanceof EClassImpl))
+            {
+                return false;
+            }
+            EClassImpl eContainingClass = (EClassImpl)getEContainingClass();
+            EClassImpl otherFeatureEContainingClass = (EClassImpl)otherFeature.getEContainingClass();
 
-          if (!Objects.equals(eContainingClass.getName(), otherFeatureEContainingClass.getName()))
-          {
-              return false;
-          }
+            if (!Objects.equals(eContainingClass.getName(), otherFeatureEContainingClass.getName()))
+            {
+                return false;
+            }
 
-          if (eContainingClass.getEPackage() != null)
-          {
-              if (otherFeatureEContainingClass.getEPackage() == null)
-              {
-                  return false;
-              }
-              if (!Objects.equals(eContainingClass.getEPackage().getName(),
-                  otherFeatureEContainingClass.getEPackage().getName()))
-              {
-                  return false;
-              }
-          }
-          else if (otherFeatureEContainingClass.getEPackage() != null)
-          {
-              return false;
-          }
-      }
-      else if (otherFeature.getEContainingClass() instanceof EClassImpl)
-      {
-          return false;
-      }
+            if (eContainingClass.getEPackage() != null)
+            {
+                if (otherFeatureEContainingClass.getEPackage() == null)
+                {
+                    return false;
+                }
+                if (!Objects.equals(eContainingClass.getEPackage().getName(),
+                        otherFeatureEContainingClass.getEPackage().getName()))
+                {
+                    return false;
+                }
+            }
+            else if (otherFeatureEContainingClass.getEPackage() != null)
+            {
+                return false;
+            }
+        }
+        else if (otherFeature.getEContainingClass() instanceof EClassImpl)
+        {
+            return false;
+        }
 
-      return true;
-  }
+        if (eAnnotations != null && !eAnnotations.isEmpty())
+        {
+            if (otherFeature.eAnnotations == null || otherFeature.eAnnotations.isEmpty())
+            {
+                return false;
+            }
+            if (!Arrays.equals(eAnnotations.toArray(), otherFeature.eAnnotations.toArray()))
+            {
+                return false;
+            }
+        }
+        else if (otherFeature.eAnnotations != null && !otherFeature.eAnnotations.isEmpty())
+        {
+            return false;
+        }
+
+        return true;
+    }
 }
