@@ -2257,9 +2257,11 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
   {
       return Objects.hash(name, getEPackage(),
           (eSuperTypes != null && !eSuperTypes.isEmpty())
-                  ? Arrays.hashCode(eSuperTypes.toArray()) : null,
+              ? Arrays.hashCode(eSuperTypes.toArray()) : null,
           (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
-              ? Arrays.hashCode(eStructuralFeatures.toArray()) : null);
+              ? Arrays.hashCode(eStructuralFeatures.toArray()) : null,
+          (eAnnotations != null && !eAnnotations.isEmpty())
+              ? Arrays.hashCode(eAnnotations.toArray()) : null);
   }
 
   @Override
@@ -2304,22 +2306,38 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
       return false;
     }
 
-      if (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
-      {
-          if (otherClass.eStructuralFeatures == null || otherClass.eStructuralFeatures.isEmpty())
-          {
-              return false;
-          }
-          if (!Arrays.equals(eStructuralFeatures.toArray(), otherClass.eStructuralFeatures.toArray()))
-          {
-              return false;
-          }
-      }
-      else if (otherClass.eStructuralFeatures != null && !otherClass.eStructuralFeatures.isEmpty())
-      {
-          return false;
-      }
+    if (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
+    {
+        if (otherClass.eStructuralFeatures == null || otherClass.eStructuralFeatures.isEmpty())
+        {
+            return false;
+        }
+        if (!Arrays.equals(eStructuralFeatures.toArray(), otherClass.eStructuralFeatures.toArray()))
+        {
+            return false;
+        }
+    }
+    else if (otherClass.eStructuralFeatures != null && !otherClass.eStructuralFeatures.isEmpty())
+    {
+        return false;
+    }
 
-      return true;
+    if (eAnnotations != null && !eAnnotations.isEmpty())
+    {
+      if (otherClass.eAnnotations == null || otherClass.eAnnotations.isEmpty())
+      {
+        return false;
+      }
+      if (!Arrays.equals(eAnnotations.toArray(), otherClass.eAnnotations.toArray()))
+      {
+        return false;
+      }
+    }
+    else if (otherClass.eAnnotations != null && !otherClass.eAnnotations.isEmpty())
+    {
+      return false;
+    }
+
+    return true;
   }
 }

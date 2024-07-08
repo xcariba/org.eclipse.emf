@@ -20,7 +20,9 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EModelElement;
+import org.eclipse.emf.ecore.ENamedElement;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
@@ -463,7 +465,12 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
   @Override
   public int hashCode()
   {
-    return Objects.hash(source, details);
+    EObject eContainer = eInternalContainer();
+
+    return Objects.hash(source, details, eContainer instanceof ENamedElement ? ((ENamedElement)eContainer).getName() : null,
+            (eContainer instanceof EClassifier && ((EClassifier)eContainer).getEPackage() != null)
+                    ? ((EClassifier)eContainer).getEPackage().getName()
+                    : null);
   }
 
   @Override
@@ -483,6 +490,57 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
     }
 
     EAnnotationImpl otherAnnotation = (EAnnotationImpl)other;
+
+    if (eInternalContainer() instanceof ENamedElementImpl)
+    {
+      if (!(otherAnnotation.eInternalContainer() instanceof ENamedElementImpl))
+      {
+        return false;
+      }
+      ENamedElementImpl eContainer = (ENamedElementImpl)eInternalContainer();
+      ENamedElementImpl otherEContainer = (ENamedElementImpl)otherAnnotation.eInternalContainer();
+
+      if (!Objects.equals(eContainer.getName(), otherEContainer.getName()))
+      {
+        return false;
+      }
+    }
+    else if (otherAnnotation.eInternalContainer() instanceof ENamedElementImpl)
+    {
+      return false;
+    }
+
+    if (eInternalContainer() instanceof EClassifierImpl)
+    {
+      if (!(otherAnnotation.eInternalContainer() instanceof EClassifierImpl))
+      {
+        return false;
+      }
+      EClassifierImpl eContainer = (EClassifierImpl)eInternalContainer();
+      EClassifierImpl otherEContainer = (EClassifierImpl)otherAnnotation.eInternalContainer();
+
+      if (eContainer.getEPackage() != null)
+      {
+        if (otherEContainer.getEPackage() == null)
+        {
+          return false;
+        }
+        if (!Objects.equals(eContainer.getEPackage().getName(),
+                otherEContainer.getEPackage().getName()))
+        {
+          return false;
+        }
+      }
+      else if (otherEContainer.getEPackage() != null)
+      {
+        return false;
+      }
+    }
+    else if (otherAnnotation.eInternalContainer() instanceof EClassifierImpl)
+    {
+      return false;
+    }
+
     return Objects.equals(source, otherAnnotation.source) && Objects.equals(details, otherAnnotation.details);
   }
 } //EAnnotationImpl
