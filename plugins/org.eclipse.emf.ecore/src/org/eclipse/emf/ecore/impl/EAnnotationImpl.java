@@ -23,7 +23,6 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EModelElement;
 import org.eclipse.emf.ecore.ENamedElement;
 import org.eclipse.emf.ecore.EObject;
@@ -469,7 +468,7 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
   @Override
   public int hashCode()
   {
-    return Objects.hash(source, details, Arrays.hashCode(getHierarchy().toArray()));
+    return Objects.hash(source, Arrays.hashCode(getHierarchy().toArray()));
   }
 
   @Override
@@ -489,7 +488,7 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
     }
 
     EAnnotationImpl otherAnnotation = (EAnnotationImpl)other;
-    return Objects.equals(source, otherAnnotation.source) && Objects.equals(details, otherAnnotation.details) &&
+    return Objects.equals(source, otherAnnotation.source) && equalDetails(details, otherAnnotation.details) &&
             getHierarchy().equals(otherAnnotation.getHierarchy());
   }
 
@@ -512,6 +511,23 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
     }
 
     return hierarchy;
+  }
+
+  private boolean equalDetails(EMap<String,String> details, EMap<String,String> otherDetails) {
+    if (details.size() != otherDetails.size())
+    {
+      return false;
+    }
+
+    for (String key: details.keySet())
+    {
+      if (!details.get(key).equals(otherDetails.get(key)))
+      {
+        return false;
+      }
+    }
+
+    return true;
   }
 } //EAnnotationImpl
 
