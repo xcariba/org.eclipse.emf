@@ -519,7 +519,7 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
     {
       return otherDetails == null;
     }
-    else if (otherDetails != null)
+    else if (otherDetails == null)
     {
       return false;
     }
