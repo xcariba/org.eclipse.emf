@@ -513,7 +513,17 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
     return hierarchy;
   }
 
-  private boolean equalDetails(EMap<String,String> details, EMap<String,String> otherDetails) {
+  private boolean equalDetails(EMap<String,String> details, EMap<String,String> otherDetails)
+  {
+    if (details == null)
+    {
+      return otherDetails == null;
+    }
+    else if (otherDetails != null)
+    {
+      return false;
+    }
+
     if (details.size() != otherDetails.size())
     {
       return false;
