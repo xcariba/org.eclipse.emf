@@ -531,7 +531,7 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
 
     for (String key: details.keySet())
     {
-      if (!details.get(key).equals(otherDetails.get(key)))
+      if (!Objects.equals(details.get(key), otherDetails.get(key)))
       {
         return false;
       }
