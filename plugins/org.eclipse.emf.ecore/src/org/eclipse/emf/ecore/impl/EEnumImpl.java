@@ -429,7 +429,7 @@ public class EEnumImpl extends EDataTypeImpl implements EEnum
   public int hashCode()
   {
       return Objects.hash(name, getEPackage(),
-          (eLiterals != null && !eLiterals.isEmpty()) ? Arrays.hashCode(eLiterals.toArray()) : null);
+          (eLiterals != null && !eLiterals.isEmpty()) ? eLiterals.size() : null);
   }
 
   @Override

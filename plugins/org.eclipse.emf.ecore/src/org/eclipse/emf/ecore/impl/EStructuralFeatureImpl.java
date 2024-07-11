@@ -3576,7 +3576,7 @@ public abstract class EStructuralFeatureImpl extends ETypedElementImpl implement
             (eContainingClass instanceof EClassImpl && ((EClassImpl)eContainingClass).getEPackage() != null)
                     ? ((EClassImpl)eContainingClass).getEPackage().getName()
                     : null,
-            (eAnnotations != null && !eAnnotations.isEmpty()) ? Arrays.hashCode(eAnnotations.toArray()) : null);
+            (eAnnotations != null && !eAnnotations.isEmpty()) ? eAnnotations.size() : null);
   }
 
     @Override

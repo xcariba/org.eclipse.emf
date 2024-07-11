@@ -2257,11 +2257,11 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
   {
       return Objects.hash(name, getEPackage(),
           (eSuperTypes != null && !eSuperTypes.isEmpty())
-              ? Arrays.hashCode(eSuperTypes.toArray()) : null,
+              ? eSuperTypes.size() : null,
           (eStructuralFeatures != null && !eStructuralFeatures.isEmpty())
-              ? Arrays.hashCode(eStructuralFeatures.toArray()) : null,
+              ? eStructuralFeatures.size() : null,
           (eAnnotations != null && !eAnnotations.isEmpty())
-              ? Arrays.hashCode(eAnnotations.toArray()) : null);
+              ? eAnnotations.size() : null);
   }
 
   @Override
