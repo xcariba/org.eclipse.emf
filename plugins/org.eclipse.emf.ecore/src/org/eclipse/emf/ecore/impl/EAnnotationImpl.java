@@ -524,6 +524,10 @@ public class EAnnotationImpl extends EModelElementImpl implements EAnnotation
       return false;
     }
 
+    if (details.isEmpty() && otherDetails.isEmpty())
+    {
+      return true;
+    }
     if (details.size() != otherDetails.size())
     {
       return false;

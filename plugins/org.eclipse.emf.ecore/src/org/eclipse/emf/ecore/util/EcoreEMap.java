@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
@@ -450,5 +451,21 @@ public class EcoreEMap<K, V> extends BasicEMap<K, V> implements InternalEList.Un
   public void unset()
   {
     ((EStructuralFeature.Setting)delegateEList).unset();
+  }
+
+  @Override
+  public Set<K> keySet()
+  {
+    if (view == null)
+    {
+      // add synchronized for single view creation
+      synchronized (this)
+      {
+        // do not need second check. View will not be null after first execution
+        return super.keySet();
+      }
+    }
+
+    return super.keySet();
   }
 }
