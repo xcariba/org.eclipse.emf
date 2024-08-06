@@ -765,166 +765,171 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
     //
     if (eAllStructuralFeatures == null)
     {
-      class EStructuralFeatureUniqueEList extends UniqueEList<EStructuralFeature>
+      synchronized (this)
       {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        protected Object [] newData(int capacity)
+        if (eAllStructuralFeatures == null)
         {
-          return new EStructuralFeature [capacity];
-        }
-
-        @Override
-        protected boolean useEquals()
-        {
-          return false;
-        }
-      }
-
-      BasicEList<EStructuralFeature> result = new EStructuralFeatureUniqueEList();
-
-      Set<EClass> computationInProgress = COMPUTATION_IN_PROGRESS.get();
-      if (computationInProgress.add(this))
-      {
-        for (EClass eSuperType : getESuperTypes())
-        {
-          result.addAll(eSuperType.getEAllStructuralFeatures());
-        }
-        computationInProgress.remove(this);
-        if (computationInProgress.isEmpty())
-        {
-          COMPUTATION_IN_PROGRESS.remove();
-        }
-      }
-      int featureID = result.size();
-      for (Iterator<EStructuralFeature> i = getEStructuralFeatures().iterator(); i.hasNext(); ++featureID)
-      {
-        ((EStructuralFeatureImpl)i.next()).setFeatureID(featureID);
-      }
-      result.addAll(getEStructuralFeatures());
-
-      class EAllStructuralFeaturesList extends EcoreEList.UnmodifiableEList.FastCompare<EStructuralFeature> implements FeatureSubsetSupplier
-      {
-        private static final long serialVersionUID = 1L;
-
-        protected EStructuralFeature [] containments = NO_EALL_STRUCTURE_FEATURES_DATA;
-        protected EStructuralFeature [] crossReferences = NO_EALL_STRUCTURE_FEATURES_DATA;
-
-        public EAllStructuralFeaturesList(BasicEList<EStructuralFeature> eAllStructuralFeatures)
-        {
-          super
-            (EClassImpl.this, 
-             EcorePackage.eINSTANCE.getEClass_EAllStructuralFeatures(), 
-             eAllStructuralFeatures.size(), 
-             eAllStructuralFeatures.data());
-        }
-
-        private void init()
-        {
-          BasicEList<EStructuralFeature> containmentsList = new EStructuralFeatureUniqueEList();
-          BasicEList<EStructuralFeature> crossReferencesList = new EStructuralFeatureUniqueEList();
-          boolean isMixed = "mixed".equals(EcoreUtil.getAnnotation(EClassImpl.this, ExtendedMetaData.ANNOTATION_URI, "kind"));
-          for (int i = 0;  i < size; ++i)
+          class EStructuralFeatureUniqueEList extends UniqueEList<EStructuralFeature>
           {
-            // Skip derived features.
-            //
-            EStructuralFeature eStructuralFeature = (EStructuralFeature)data[i];
-            if (eStructuralFeature instanceof EReference)
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Object[] newData(int capacity)
             {
-              EReference eReference = (EReference)eStructuralFeature;
-              if (eReference.isContainment())
+              return new EStructuralFeature[capacity];
+            }
+
+            @Override
+            protected boolean useEquals()
+            {
+              return false;
+            }
+          }
+
+          BasicEList<EStructuralFeature> result = new EStructuralFeatureUniqueEList();
+
+          Set<EClass> computationInProgress = COMPUTATION_IN_PROGRESS.get();
+          if (computationInProgress.add(this))
+          {
+            for (EClass eSuperType : getESuperTypes())
+            {
+              result.addAll(eSuperType.getEAllStructuralFeatures());
+            }
+            computationInProgress.remove(this);
+            if (computationInProgress.isEmpty())
+            {
+              COMPUTATION_IN_PROGRESS.remove();
+            }
+          }
+          int featureID = result.size();
+          for (Iterator<EStructuralFeature> i = getEStructuralFeatures().iterator(); i.hasNext(); ++featureID)
+          {
+            ((EStructuralFeatureImpl)i.next()).setFeatureID(featureID);
+          }
+          result.addAll(getEStructuralFeatures());
+
+          class EAllStructuralFeaturesList extends EcoreEList.UnmodifiableEList.FastCompare<EStructuralFeature>
+                  implements FeatureSubsetSupplier
+          {
+            private static final long serialVersionUID = 1L;
+
+            protected EStructuralFeature[] containments = NO_EALL_STRUCTURE_FEATURES_DATA;
+            protected EStructuralFeature[] crossReferences = NO_EALL_STRUCTURE_FEATURES_DATA;
+
+            public EAllStructuralFeaturesList(BasicEList<EStructuralFeature> eAllStructuralFeatures)
+            {
+              super(EClassImpl.this, EcorePackage.eINSTANCE.getEClass_EAllStructuralFeatures(),
+                      eAllStructuralFeatures.size(), eAllStructuralFeatures.data());
+            }
+
+            private void init()
+            {
+              BasicEList<EStructuralFeature> containmentsList = new EStructuralFeatureUniqueEList();
+              BasicEList<EStructuralFeature> crossReferencesList = new EStructuralFeatureUniqueEList();
+              boolean isMixed = "mixed".equals(
+                      EcoreUtil.getAnnotation(EClassImpl.this, ExtendedMetaData.ANNOTATION_URI, "kind"));
+              for (int i = 0; i < size; ++i)
               {
-                // Include derived relations only if they won't also come from mixed or a group.
+                // Skip derived features.
                 //
-                if (!eReference.isDerived() || 
-                      !isMixed && EcoreUtil.getAnnotation(eReference, ExtendedMetaData.ANNOTATION_URI, "group") == null)
+                EStructuralFeature eStructuralFeature = (EStructuralFeature)data[i];
+                if (eStructuralFeature instanceof EReference)
                 {
-                  containmentsList.add(eReference);
+                  EReference eReference = (EReference)eStructuralFeature;
+                  if (eReference.isContainment())
+                  {
+                    // Include derived relations only if they won't also come from mixed or a group.
+                    //
+                    if (!eReference.isDerived() || !isMixed && EcoreUtil.getAnnotation(eReference,
+                            ExtendedMetaData.ANNOTATION_URI, "group") == null)
+                    {
+                      containmentsList.add(eReference);
+                    }
+                  }
+                  else if (!eReference.isContainer())
+                  {
+                    // Include derived relations only if they won't also come from mixed or a group.
+                    //
+                    if (!eReference.isDerived() || !isMixed && EcoreUtil.getAnnotation(eReference,
+                            ExtendedMetaData.ANNOTATION_URI, "group") == null)
+                    {
+                      crossReferencesList.add(eReference);
+                    }
+                  }
+                }
+                else if (FeatureMapUtil.isFeatureMap(eStructuralFeature))
+                {
+                  if (!eStructuralFeature.isDerived())
+                  {
+                    containmentsList.add(eStructuralFeature);
+                    crossReferencesList.add(eStructuralFeature);
+                  }
                 }
               }
-              else if (!eReference.isContainer())
-              {
-                // Include derived relations only if they won't also come from mixed or a group.
-                //
-                if (!eReference.isDerived() || 
-                      !isMixed && EcoreUtil.getAnnotation(eReference, ExtendedMetaData.ANNOTATION_URI, "group") == null)
-                {
-                  crossReferencesList.add(eReference);
-                }
-              }
+              containmentsList.shrink();
+              crossReferencesList.shrink();
+              containments = (EStructuralFeature[])containmentsList.data();
+              crossReferences = (EStructuralFeature[])crossReferencesList.data();
             }
-            else if (FeatureMapUtil.isFeatureMap(eStructuralFeature))
+
+            public EStructuralFeature[] containments()
             {
-              if (!eStructuralFeature.isDerived())
+              if (containments == NO_EALL_STRUCTURE_FEATURES_DATA)
               {
-                containmentsList.add(eStructuralFeature);
-                crossReferencesList.add(eStructuralFeature);
+                init();
               }
+              return containments;
             }
-          }
-          containmentsList.shrink();
-          crossReferencesList.shrink();
-          containments = (EStructuralFeature [])containmentsList.data();
-          crossReferences = (EStructuralFeature [])crossReferencesList.data();
-        }
 
-        public EStructuralFeature [] containments()
-        {
-          if (containments == NO_EALL_STRUCTURE_FEATURES_DATA)
-          {
-            init();
-          }
-          return containments;
-        }
-
-        public EStructuralFeature [] crossReferences()
-        {
-          if (crossReferences == NO_EALL_STRUCTURE_FEATURES_DATA)
-          {
-            init();
-          }
-          return crossReferences;
-        }
-
-        public EStructuralFeature [] features()
-        {
-          return (EStructuralFeature [])data;
-        }
-
-        @Override
-        public int indexOf(Object object)
-        {
-          if (object instanceof EStructuralFeature)
-          {
-            EStructuralFeature eStructuralFeature = (EStructuralFeature)object;
-            int index = eStructuralFeature.getFeatureID();
-            if (index != -1)
+            public EStructuralFeature[] crossReferences()
             {
-              for (int last = this.size; index < last; ++index)
+              if (crossReferences == NO_EALL_STRUCTURE_FEATURES_DATA)
               {
-                if (data[index] == object)
+                init();
+              }
+              return crossReferences;
+            }
+
+            public EStructuralFeature[] features()
+            {
+              return (EStructuralFeature[])data;
+            }
+
+            @Override
+            public int indexOf(Object object)
+            {
+              if (object instanceof EStructuralFeature)
+              {
+                EStructuralFeature eStructuralFeature = (EStructuralFeature)object;
+                int index = eStructuralFeature.getFeatureID();
+                if (index != -1)
                 {
-                  return index;
+                  for (int last = this.size; index < last; ++index)
+                  {
+                    if (data[index] == object)
+                    {
+                      return index;
+                    }
+                  }
                 }
               }
+              return -1;
             }
           }
-          return -1;
+
+          result.shrink();
+          eAllStructuralFeatures = new EAllStructuralFeaturesList(result);
+          eAllStructuralFeaturesData = (EStructuralFeature[])result.data();
+          if (eAllStructuralFeaturesData == null)
+          {
+            eAllStructuralFeaturesData = NO_EALL_STRUCTURE_FEATURES_DATA;
+          }
+
+          eNameToFeatureMap = null;
+
+          getESuperAdapter().setAllStructuralFeaturesCollectionModified(false);
         }
       }
-
-      result.shrink();
-      eAllStructuralFeatures = new EAllStructuralFeaturesList(result);
-      eAllStructuralFeaturesData = (EStructuralFeature[])result.data();
-      if (eAllStructuralFeaturesData == null)
-      {
-        eAllStructuralFeaturesData = NO_EALL_STRUCTURE_FEATURES_DATA;
-      }
-
-      eNameToFeatureMap = null; 
-      
-      getESuperAdapter().setAllStructuralFeaturesCollectionModified(false);
     }
 
     return eAllStructuralFeatures;
