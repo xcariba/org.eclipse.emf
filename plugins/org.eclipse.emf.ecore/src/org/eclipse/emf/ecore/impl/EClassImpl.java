@@ -1465,11 +1465,19 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
 
   protected EStructuralFeature[] getEAllStructuralFeaturesData()
   {
-    if (eAllStructuralFeaturesData == null)
+    // for multithreading
+    EStructuralFeature[] threadLocalEAllStructuralFeaturesData = eAllStructuralFeaturesData;
+    if (threadLocalEAllStructuralFeaturesData == null)
     {
-      getEAllStructuralFeatures();
+      synchronized (this)
+      {
+        getEAllStructuralFeatures();
+
+        threadLocalEAllStructuralFeaturesData = eAllStructuralFeaturesData;
+      }
     }
-    return eAllStructuralFeaturesData;
+
+    return threadLocalEAllStructuralFeaturesData;
   }
   
   /**
@@ -2211,8 +2219,11 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
             }
             if (isAllStructuralFeaturesCollectionModified())
             {
-              eAllStructuralFeatures = null;
-              eAllStructuralFeaturesData = null;
+              synchronized (this)
+              {
+                eAllStructuralFeatures = null;
+                eAllStructuralFeaturesData = null;
+              }
             }
             if (isAllOperationsCollectionModified())
             {
