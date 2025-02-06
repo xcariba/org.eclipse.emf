@@ -859,7 +859,11 @@ public class BasicEObjectImpl extends BasicNotifierImpl implements EObject, Inte
     {
       if (eContainerFeatureID <= EOPPOSITE_FEATURE_BASE)
       {
-        EStructuralFeature eFeature =  eContainer.eClass().getEStructuralFeature(EOPPOSITE_FEATURE_BASE - eContainerFeatureID);
+        // TODO : DELETE CAST AFTER LOGS
+        EClass eContainerEClass = eContainer.eClass();
+        EStructuralFeature eFeature = eContainerEClass instanceof EClassImpl ?
+                ((EClassImpl)eContainer.eClass()).getEStructuralFeatureWithLogs(EOPPOSITE_FEATURE_BASE - eContainerFeatureID)
+                : eContainer.eClass().getEStructuralFeature(EOPPOSITE_FEATURE_BASE - eContainerFeatureID);
         if (eFeature instanceof EReference)
         {
           return (EReference)eFeature;

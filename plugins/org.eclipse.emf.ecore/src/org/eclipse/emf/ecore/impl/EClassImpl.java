@@ -25,6 +25,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
@@ -98,8 +99,8 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
   protected EAttribute eIDAttribute;
   protected BasicEList<EAttribute> eAllAttributes;
   protected BasicEList<EReference> eAllReferences;
-  protected BasicEList<EStructuralFeature> eAllStructuralFeatures;
-  protected EStructuralFeature[] eAllStructuralFeaturesData;
+  protected volatile BasicEList<EStructuralFeature> eAllStructuralFeatures;
+  protected volatile EStructuralFeature[] eAllStructuralFeaturesData;
   protected BasicEList<EReference> eAllContainments;  
   protected BasicEList<EOperation> eAllOperations;
   protected EOperation[] eAllOperationsData;
@@ -1503,6 +1504,27 @@ public class EClassImpl extends EClassifierImpl implements EClass, ESuperAdapter
         eAllStructuralFeaturesData[featureID] : 
         null;
   }
+
+  // ================================
+  // TODO : DELETE AFTER GETTING LOGS
+  public EStructuralFeature getEStructuralFeatureWithLogs(int featureID)
+  {
+    EStructuralFeature [] eAllStructuralFeaturesData  = getEAllStructuralFeaturesData();
+    EStructuralFeature feature = featureID >= 0 && featureID < eAllStructuralFeaturesData.length
+            ? eAllStructuralFeaturesData[featureID]
+            : null;
+
+    if (feature == null)
+    {
+      throw new IllegalStateException("Expected non null feature but got null. Context: featureID: " + featureID +
+              ", eAllStructuralFeaturesData: " + (eAllStructuralFeaturesData != null ? Arrays.stream(
+                      eAllStructuralFeaturesData).map(featureData -> featureData != null ? featureData.toString() : null)
+              .collect(Collectors.joining(", ")) : null));
+    }
+
+    return feature;
+  }
+  // ================================
 
   /**
    * <!-- begin-user-doc -->
