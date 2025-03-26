@@ -3652,8 +3652,7 @@ public abstract class EStructuralFeatureImpl extends ETypedElementImpl implement
           {
             return false;
           }
-          if (!Objects.equals(eContainingClass.getEPackage().getName(),
-                  otherFeatureEContainingClass.getEPackage().getName()))
+          if (!Objects.equals(eContainingClass.getEPackage(), otherFeatureEContainingClass.getEPackage()))
           {
             return false;
           }
