@@ -30,7 +30,6 @@
           <optional>true</optional>
       </dependency>
   </dependencies>
-
   <dependencyManagement>
       <dependencies>
           <dependency>
